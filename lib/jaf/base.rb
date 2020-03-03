@@ -38,7 +38,7 @@ module Jaf::Base
     return collection unless sort
 
     sort_fields = JsonApi::SortFields.deserialize(sort)
-    collection.ordersort_fields)
+    collection.order(sort_fields)
   end
 
   def serialize(resource, options = {})
@@ -88,4 +88,4 @@ module Jaf::Base
   def parent_id
     params[parent_key]
   end
-end(
+end
