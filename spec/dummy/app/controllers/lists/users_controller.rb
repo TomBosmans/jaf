@@ -1,3 +1,3 @@
 class Lists::UsersController < UsersController
-  include NestedResources
+  include Jaf::NestedResources
 end

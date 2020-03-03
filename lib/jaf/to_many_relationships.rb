@@ -11,12 +11,12 @@ module Jaf::ToManyRelationships
 
   def update
     resources = resource_model.where(id: resource_ids)
-    update_resource(parent, resource_key => resources)
+    update_resource(parent, resource_name.pluralize => resources)
     head :no_content
   end
 
   def destroy
-    parent.send(resource_key).where(id: resource_ids).each do |resource|
+    parent.send(resource_name.pluralize).where(id: resource_ids).each do |resource|
       update_resource(resource, parent_key => nil)
     end
 

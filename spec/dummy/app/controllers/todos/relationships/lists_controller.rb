@@ -1,3 +1,3 @@
 class Todos::Relationships::ListsController < ApplicationController
-  include ToOneRelationships
+  include Jaf::ToOneRelationships
 end

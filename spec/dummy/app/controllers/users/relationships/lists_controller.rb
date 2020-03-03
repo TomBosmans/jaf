@@ -1,3 +1,3 @@
 class Users::Relationships::ListsController < ApplicationController
-  include ToManyRelationships
+  include Jaf::ToManyRelationships
 end

@@ -1,3 +1,3 @@
 class Lists:TodosController < TodosController
-  include NestedResources
+  include Jaf::NestedResources
 end

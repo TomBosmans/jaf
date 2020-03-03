@@ -6,6 +6,6 @@ module Jaf::NestedResources
   include Jaf::Resources
 
   def base_collection
-    parent.public_send(resource_key)
+    parent.public_send(resource_name.pluralize)
   end
 end

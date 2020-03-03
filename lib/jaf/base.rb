@@ -61,10 +61,6 @@ module Jaf::Base
     resource_name.camelcase.constantize
   end
 
-  def resource_key
-    many_relationship? ? resource_key.pluralize : resource_name
-  end
-
   def many_relationship?
     parent.try(resource_name).blank?
   end
