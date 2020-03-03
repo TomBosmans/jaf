@@ -2,6 +2,7 @@
 require 'spec_helper'
 require 'factory_bot_rails'
 require 'faker'
+require 'pry'
 
 ENV['RAILS_ENV'] ||= 'test'
 
