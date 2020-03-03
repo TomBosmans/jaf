@@ -30,14 +30,14 @@ module Jaf::Base
     page_number = params.dig(:page, :number)&.to_i
     return collection unless page_size && page_number
 
-    JsonApi::Pagination.filter(collection, size: page_size, number: page_number)
+    Jaf::Pagination.filter(collection, size: page_size, number: page_number)
   end
 
   def sort(collection)
     sort = params[:sort]
     return collection unless sort
 
-    sort_fields = JsonApi::SortFields.deserialize(sort)
+    sort_fields = Jaf::SortFields.deserialize(sort)
     collection.order(sort_fields)
   end
 
