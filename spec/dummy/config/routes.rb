@@ -1,3 +1,5 @@
 Rails.application.routes.draw do
-  # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
+  json_api_resources :users, lists: :to_many
+  json_api_resources :lists, todos: :to_many, user: :to_one
+  json_api_resources :todo, todo: :to_one
 end
