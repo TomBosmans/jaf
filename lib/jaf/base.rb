@@ -1,10 +1,17 @@
 # frozen_string_literal: true
 
 module Jaf::Base
+  extend ActiveSupport::Concern
+
+  included do
+    class_attribute :ignore_namespaces, default: []
+  end
+
   def options
     @options ||= build_options
   end
 
+  # options will be passed to your serializer.
   def build_options
     options = {}
     options[:include] = params[:include].split(',') if params[:include]
@@ -12,17 +19,14 @@ module Jaf::Base
     options
   end
 
+  # The data object from params
   def data
     params.require(:data)
   end
 
+  # the attributes object from data object.
   def attributes
     data.require(:attributes)
-  end
-
-  def serialize_object(data)
-    serializer = "JsonApi::#{resource_model}Serializer".constantize
-    serializer.new(data).serialized_json
   end
 
   def paginate(collection)
@@ -49,8 +53,13 @@ module Jaf::Base
     self.class.name
   end
 
+  def ignore_namespaces
+    self.class.ignore_namespaces
+  end
+
   def modules
-    controller_name.sub('JsonApi::', '').chomp('Controller').split('::')
+    name = ignore_namespaces.inject(controller_name) { |name, namespace| name.sub(namespace, '') }
+    name.chomp('Controller').split('::').reject(&:empty?)
   end
 
   def resource_name
