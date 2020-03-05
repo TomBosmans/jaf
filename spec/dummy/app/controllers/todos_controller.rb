@@ -1,4 +1,4 @@
-class TodosController < ApplicationsController
+class TodosController < ApplicationController
   include Jaf::Resources
 
   private
