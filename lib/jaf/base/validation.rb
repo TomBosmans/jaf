@@ -1,17 +1,6 @@
 # frozen_string_literal: true
 
 module Validation
-  def validate_data_object_is_present
-    return unless data
-
-    error = {
-      source: { pointer: '' },
-      detail: "Missing `data` Member at document's top level."
-    }
-
-    render json: serialize_error(error), status: :unprocessable_entity
-  end
-
   # Example: ['todos', 'user']
   def allowed_includes
     []
@@ -22,11 +11,15 @@ module Validation
     {}
   end
 
+  def allowed_filters
+    []
+  end
+
   def allowed_query_params
     %w[include fields filter sort page]
   end
 
-  def validate_query_params(errors = [])
+  def validate_query_params
     errors = [].then(&method(:validate_query_param_keys_clause))
                .then(&method(:validate_include_clause))
                .then(&method(:validate_fields_clause))

@@ -30,6 +30,11 @@ RSpec.describe 'Resources' do
         get :show, params: { id: user.id }
         expect(response).to have_http_status :ok
       end
+
+      it 'has 404 when record is not found' do
+        get :show, params: { id: 3 }
+        expect(response).to have_http_status :not_found
+      end
     end
 
     describe '#POST create' do

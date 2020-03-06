@@ -34,6 +34,18 @@ RSpec.describe 'NestedResources' do
         get :show, params: { user_id: user.id, id: list.id }
         expect(response).to have_http_status :ok
       end
+
+      it 'has a 404 status when record is not found' do
+        user = create :user
+        get :show, params: { user_id: user.id, id: 4 }
+        expect(response).to have_http_status :not_found
+      end
+
+      it 'has 404 status when parent is not found' do
+        list = create :list
+        get :show, params: { user_id: 4, id: list.id }
+        expect(response).to have_http_status :not_found
+      end
     end
 
     describe '#POST create' do

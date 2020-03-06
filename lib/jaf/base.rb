@@ -9,6 +9,17 @@ module Jaf::Base
   included do
     class_attribute :ignore_namespaces, default: []
     before_action :validate_query_params, on: :index
+
+    rescue_from ActionController::ParameterMissing do |exception|
+      pointer = %i[data attributes] # data/attributes
+      index = pointer.index(exception.param) # where to cut off the pointer
+      error = { source: { pointer: pointer.first(index).join('/') }, detail: exception.message }
+      render json: serialize_error(error), status: :unprocessable_entity
+    end
+
+    rescue_from ActiveRecord::RecordNotFound do |exception|
+      render json: serialize_error(detail: exception.message), status: :not_found
+    end
   end
 
   def query_params
