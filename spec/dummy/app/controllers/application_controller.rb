@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ApplicationController < ActionController::API
   include Jaf::Base
 
@@ -35,12 +37,11 @@ class ApplicationController < ActionController::API
     fields[resource_name] = serializer.attributes_to_serialize.keys.map(&:to_s)
     return fields unless options[:include]
 
-    fields = options[:include].inject(fields) do |fields, included|
+    fields = options[:include].each_with_object(fields) do |included, fields|
       next fields unless allowed_includes.include?(included)
 
       serializer = "#{included.singularize.camelize}Serializer".constantize
       fields[included] = serializer.attributes_to_serialize.keys.map(&:to_s)
-      fields
     end
 
     fields

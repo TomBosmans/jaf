@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TodoSerializer < ApplicationSerializer
   set_type :todo
   set_id :id

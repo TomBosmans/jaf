@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative 'base/validation'
 
 module Jaf::Base
@@ -19,13 +20,11 @@ module Jaf::Base
   end
 
   def serialize_invalid_attributes(errors)
-    options = errors.messages.inject([]) do |array, (attribute, messages)|
+    options = errors.messages.each_with_object([]) do |(attribute, messages), array|
       messages.each do |message|
         source = { pointer: "data/attributes/#{attribute.to_s.camelize(:lower)}" }
         array.push(source: source, detail: message)
       end
-
-      array
     end
 
     serialize_errors(options)
@@ -43,7 +42,9 @@ module Jaf::Base
   def build_options
     options = {}
     options[:include] = params[:include].split(',') if params[:include]
-    options[:fields] = params[:fields].permit!.to_h.transform_values { |value| value.split(',') } if params[:fields]
+    if params[:fields]
+      options[:fields] = params[:fields].permit!.to_h.transform_values { |value| value.split(',') }
+    end
     options
   end
 

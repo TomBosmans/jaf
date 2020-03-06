@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # id: a unique identifier for this particular occurrence of the problem.
 # links: a links object containing the following members:
 #     about: a link that leads to further details about this particular occurrence of the problem.
@@ -14,7 +16,9 @@ class Jaf::ErrorMember
 
   def initialize(options = {})
     @options = options.slice(:id, :links, :status, :code, :title, :detail, :meta)
-    @options[:source] = options[:source].slice(:pointer, :parameter) if options[:source]
+    if options[:source]
+      @options[:source] = options[:source].slice(:pointer, :parameter)
+    end
   end
 
   def to_h
@@ -24,7 +28,7 @@ end
 
 class Jaf::ErrorSerializer
   attr_reader :errors
-  
+
   def initialize(errors = [])
     @errors = errors.map(&method(:to_member))
   end

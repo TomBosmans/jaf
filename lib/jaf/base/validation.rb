@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Validation
   def validate_data_object_is_present
     return unless data
@@ -30,56 +32,52 @@ module Validation
                .then(&method(:validate_fields_clause))
                .then(&method(:validate_filters_clause))
 
-    render json: serialize_errors(errors), status: :bad_request if errors.present?
+    if errors.present?
+      render json: serialize_errors(errors), status: :bad_request
+    end
   end
 
   def validate_query_param_keys_clause(errors)
     return errors unless query_params.keys
 
-    query_params.keys.inject(errors) do |errors, key|
+    query_params.keys.each_with_object(errors) do |key, errors|
       next errors if allowed_query_params.include?(key)
 
       errors.push(
         source: { parameter: key },
-        title: "Invalid Query Parameter",
+        title: 'Invalid Query Parameter',
         detail: "#{key} is unknown query parameter."
       )
-
-      errors
     end
   end
 
   def validate_include_clause(errors)
     return errors unless options[:include]
 
-    options[:include].inject(errors) do |errors, included|
+    options[:include].each_with_object(errors) do |included, errors|
       next errors if allowed_includes.include?(included)
 
       errors.push(
         source: { parameter: 'include' },
-        title: "Invalid Query Parameter",
+        title: 'Invalid Query Parameter',
         detail: "#{resource_name.capitalize} does not have an `#{included}` relationship path."
       )
-
-      errors
     end
   end
 
   def validate_fields_clause(errors)
     return errors unless options[:fields]
 
-    options[:fields].inject(errors) do |errors, (key, attributes)|
+    options[:fields].each_with_object(errors) do |(key, attributes), errors|
       attributes.each do |attribute|
         next errors if allowed_fields[key]&.include?(attribute)
 
         errors.push(
           source: { parameter: 'fields' },
-          title: "Invalid Query Parameter",
+          title: 'Invalid Query Parameter',
           detail: "#{key.capitalize} with attribute #{attribute}."
         )
       end
-
-      errors
     end
   end
 

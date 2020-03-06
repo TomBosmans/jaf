@@ -1,4 +1,6 @@
-require "jaf/railtie"
+# frozen_string_literal: true
+
+require 'jaf/railtie'
 require 'jaf/pagination'
 require 'jaf/sort_fields'
 require 'jaf/base'

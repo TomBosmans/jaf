@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ListsController < ApplicationController
   include Jaf::Resources
 

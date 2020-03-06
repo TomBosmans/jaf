@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ListSerializer < ApplicationSerializer
   set_type :list
   set_id :id
