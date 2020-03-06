@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-class BaseTest
+class BaseTest < ActionController::API
   include Jaf::Base
 
   self.ignore_namespaces = %w[JsonApi V1]

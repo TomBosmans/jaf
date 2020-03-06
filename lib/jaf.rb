@@ -7,7 +7,7 @@ require 'jaf/nested_resources'
 require 'jaf/to_many_relationships'
 require 'jaf/to_one_relationships'
 require 'jaf/routes'
-require 'jaf/serializers'
+require 'jaf/error_serializer'
 
 module Jaf
   # Your code goes here...

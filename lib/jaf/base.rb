@@ -1,14 +1,42 @@
 # frozen_string_literal: true
+require_relative 'base/validation'
 
 module Jaf::Base
   extend ActiveSupport::Concern
+  include Validation
 
   included do
     class_attribute :ignore_namespaces, default: []
+    before_action :validate_query_params, on: :index
+  end
+
+  def query_params
+    request.query_parameters
   end
 
   def options
     @options ||= build_options
+  end
+
+  def serialize_invalid_attributes(errors)
+    options = errors.messages.inject([]) do |array, (attribute, messages)|
+      messages.each do |message|
+        source = { pointer: "data/attributes/#{attribute.to_s.camelize(:lower)}" }
+        array.push(source: source, detail: message)
+      end
+
+      array
+    end
+
+    serialize_errors(options)
+  end
+
+  def serialize_error(error)
+    serialize_errors([error])
+  end
+
+  def serialize_errors(errors)
+    Jaf::ErrorSerializer.serialize(errors)
   end
 
   # options will be passed to your serializer.

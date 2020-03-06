@@ -14,9 +14,11 @@ module Jaf::Resources
   def create
     created_resource = create_resource(new_resource, resource_params)
     if created_resource.errors.blank?
-      render json: serialize(created_resource), status: :created
+      render json: serialize(created_resource),
+             status: :created
     else
-      render json: created_resource.errors, status: :unprocessable_entity
+      render json: serialize_invalid_attributes(created_resource.errors),
+             status: :unprocessable_entity
     end
   end
 
@@ -25,7 +27,8 @@ module Jaf::Resources
     if updated_resource.errors.blank?
       head :no_content
     else
-      render json: updated_resource.errors, status: :unprocessable_entity
+      render json: serialize_invalid_attributes(updated_resource.errors),
+             status: :unprocessable_entity
     end
   end
 
