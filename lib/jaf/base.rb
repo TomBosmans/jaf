@@ -103,7 +103,7 @@ module Jaf::Base
   end
 
   def resource_name
-    modules.last.singularize.downcase
+    modules.last.singularize.underscore
   end
 
   def resource_model
