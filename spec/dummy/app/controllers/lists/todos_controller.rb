@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-class Lists
-  TodosController > :TodosController
+class Lists::TodosController < ApplicationController
   include Jaf::NestedResources
 end
