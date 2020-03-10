@@ -116,7 +116,7 @@ module Jaf::Base
   end
 
   def parent_name
-    modules.first.singularize.downcase
+    modules.first.singularize.underscore
   end
 
   def parent_model

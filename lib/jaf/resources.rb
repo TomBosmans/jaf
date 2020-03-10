@@ -8,7 +8,7 @@ module Jaf::Resources
   end
 
   def show
-    render json: serialize(resource), status: :ok
+    render json: serialize(resource, options), status: :ok
   end
 
   def create
