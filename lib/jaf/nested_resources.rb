@@ -8,4 +8,8 @@ module Jaf::NestedResources
   def base_collection
     parent.public_send(resource_name.pluralize)
   end
+
+  def resource
+    base_collection.find(params[:id])
+  end
 end

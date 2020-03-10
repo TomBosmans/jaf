@@ -18,7 +18,8 @@ module Jaf::Base
     end
 
     rescue_from ActiveRecord::RecordNotFound do |exception|
-      render json: serialize_error(detail: exception.message), status: :not_found
+      message = "Could not find #{exception.model} with id=#{exception.id}"
+      render json: serialize_error(detail: message), status: :not_found
     end
   end
 

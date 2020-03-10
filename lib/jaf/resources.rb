@@ -40,7 +40,7 @@ module Jaf::Resources
   private
 
   def resource
-    base_collection.find(params[:id])
+    resource_model.find(params[:id])
   end
 
   def base_collection
