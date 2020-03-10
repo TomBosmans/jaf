@@ -1,30 +1,30 @@
 # frozen_string_literal: true
 
-def json_api_resources(name, relations = {})
-  resources name, only: %w[index show create update destroy] do
+def json_api_many(name, only: %w[index show create update destroy], set_relationship: true)
+  resources name, only: only
+  return unless set_relationship
+
+  namespace :relationships do
+    post name, to: "#{name}#create"
+    put name, to: "#{name}#update"
+    patch name, to: "#{name}#update"
+    delete name, to: "#{name}#destroy"
+  end
+end
+
+def json_api_one(name, only: %w[show update destroy], set_relationship: true)
+  resource name, only: only
+  return unless set_relationship
+
+  namespace :relationships do
+    resource name, only: %w[update]
+  end
+end
+
+def json_api_resources(name, only: %w[index show create update destroy])
+  resources name, only: only do
     scope module: name do
       yield if block_given?
-      relations.map do |relation_name, type|
-        case type
-        when :to_one
-          resource relation_name, only: %w[show update destroy]
-        when :to_many
-          resources relation_name, only: %w[index show create update destroy]
-        end
-      end
-      namespace :relationships do
-        relations.map do |relation_name, type|
-          case type
-          when :to_one
-            resource relation_name, only: %w[update]
-          when :to_many
-            post relation_name, to: "#{relation_name}#create"
-            put relation_name, to: "#{relation_name}#update"
-            patch relation_name, to: "#{relation_name}#update"
-            delete relation_name, to: "#{relation_name}#destroy"
-          end
-        end
-      end
     end
   end
 end
