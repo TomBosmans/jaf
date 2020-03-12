@@ -21,7 +21,7 @@ end
 ```
 
 ### Create the controllers
-First we want to create an `ApplicationController` that will include [base](lib/jaf/base.rb).
+First we want to create an `ApplicationController` that will include [Base](lib/jaf/base.rb).
 This will add some methods that help automate some of the process.
 - `query_params`: returns only the query params
 - `options`: options that can be given to the serializer (like meta info, current_user, ...)
@@ -44,7 +44,7 @@ class ApplicationController < ActionController::API
 end
 ```
 
-Now we can create our `ListsController` that includes [base](lib/jaf/resources.rb).
+Now we can create our `ListsController` that includes [Resources](lib/jaf/resources.rb).
 ```ruby
 class ListsController < ApplicationController
   include Jaf::Resources
