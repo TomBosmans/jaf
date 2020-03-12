@@ -1,58 +1,97 @@
-# Jaf
-Offering libraries to help you build [JSON:API](https://jsonapi.org) compliant endpoints.
+## How to use
 
-## Usage
-### Create routes
-in your `confit/routes.rb` you can create all needed endpoints with `json_api_resources`:
+### Set up routes
+We are going to use the [routes.rb](lib/jaf/routes.rb) helpers for this.
+
+- `json_api_routes`: will create index/show/create/update/destroy endpoints
+- `json_api_many`: will create index/show/create/update/destroy endpoints + create/update/destroy relations endpoints
+- `json_api_one`: will create show/update/destroy endpoints + an update relations endpoint
+
+They all accept `only` param to overwrite the endpoints it creates and an `set_relation`
+that can be set to false if you don't want to create the relationship endpoints.
+It is also possible to add extra endpoints inside the block.
+
 ```ruby
-Rails.application.routes.draw do
-  # ...
-  json_api_resources :lists, todos: :to_many, user: :to_one
+# config/routes.rb 
+json_api_routes :lists do
+  get :ability, to: 'ability#show'
+  json_api_many :todos
+  json_api_one :user
 end
 ```
 
-this will give you:
-```
-                           list_todos GET    /lists/:list_id/todos(.:format)                                                          lists/todos#index
-                                      POST   /lists/:list_id/todos(.:format)                                                          lists/todos#create
-                            list_todo GET    /lists/:list_id/todos/:id(.:format)                                                      lists/todos#show
-                                      PATCH  /lists/:list_id/todos/:id(.:format)                                                      lists/todos#update
-                                      PUT    /lists/:list_id/todos/:id(.:format)                                                      lists/todos#update
-                                      DELETE /lists/:list_id/todos/:id(.:format)                                                      lists/todos#destroy
-                            list_user GET    /lists/:list_id/user(.:format)                                                           lists/users#show
-                                      PATCH  /lists/:list_id/user(.:format)                                                           lists/users#update
-                                      PUT    /lists/:list_id/user(.:format)                                                           lists/users#update
-                                      DELETE /lists/:list_id/user(.:format)                                                           lists/users#destroy
-             list_relationships_todos POST   /lists/:list_id/relationships/todos(.:format)                                            lists/relationships/todos#create
-                                      PUT    /lists/:list_id/relationships/todos(.:format)                                            lists/relationships/todos#update
-                                      PATCH  /lists/:list_id/relationships/todos(.:format)                                            lists/relationships/todos#update
-                                      DELETE /lists/:list_id/relationships/todos(.:format)                                            lists/relationships/todos#destroy
-              list_relationships_user PATCH  /lists/:list_id/relationships/user(.:format)                                             lists/relationships/users#update
-                                      PUT    /lists/:list_id/relationships/user(.:format)                                             lists/relationships/users#update
-                                lists GET    /lists(.:format)                                                                         lists#index
-                                      POST   /lists(.:format)                                                                         lists#create
-                                 list GET    /lists/:id(.:format)                                                                     lists#show
-                                      PATCH  /lists/:id(.:format)                                                                     lists#update
-                                      PUT    /lists/:id(.:format)                                                                     lists#update
-                                      DELETE /lists/:id(.:format)                                                                     lists#destroy
-```
+### Create the controllers
+First we want to create an `ApplicationController` that will include [base](lib/jaf/base.rb).
+This will add some methods that help automate some of the process.
+- `query_params`: returns only the query params
+- `options`: options that can be given to the serializer (like meta info, current_user, ...)
+- `serialize_error`: To serialize an error message (no external library needed)
+- `serialize_errors`: To serialize multiple errors
+- `data`: returns the data params.
+- `attributes`: returns attributes params.
+- `resource_name`: returns the name of the resource based on the controller name.
+- `resource_model`: returns the resource model based on controller name.
+- `parent_name`: returns the parent resource in a nested endpoint based on controller name.
+- `parent_model`: returns the parent model in a nested endpoint based on controller name.
+- `parent_id`: returns the parent id given through the params.
 
-### Create controllers
-Create a base controller that includes `Jaf::Base`. Now every
+- `ignore_namespaces`: class attribute that can be set to ignore namespaces when determining `resource_model` etc.
+    
 ```ruby
-class ApplicationController < ActiveRecord::API
+class ApplicationController < ActionController::API
+  # self.ignore_namespaces = %w[json_api]
   include Jaf::Base
 end
+```
 
-class UsersController < ApplicationController
+Now we can create our `ListsController` that includes [base](lib/jaf/resources.rb).
+```ruby
+class ListsController < ApplicationController
   include Jaf::Resources
+  
+  private
+
+  def resource_params
+    attributes.permit(:name, :description)
+  end
+end
+```
+The idea is that you overwrite the following methods to get the behaviour you want:
+
+- `resource`: To fetch your record based on the params[:id].
+- `resource_params`: Strong params given to update_resource and create_resource.
+- `base_collection`: The record collection used as a base in the index
+- `new_resource`: The initialized instance used to create a record.
+- `create_resource`: move your create logic in here and make sure it returns the resource again, if it has no errors it is considered a success.
+- `update_resource`: move your update logic in here and make sure it returns the updated record. If it has no errors it is considered a success.
+- `destroy_resource`: move you destroy logic in here.
+- `serialize`: Use a gem like fast_jsonapi or AMS to serialize your result.
+
+Next you want to create your `Lists::TodosController` and `Lists::UsersController`
+```ruby
+# Assuming you already have a TodosController we can use that to inherit from
+# This way we don't need to set resource_params a second time.
+class Lists::TodosController < TodosController
+  private
+
+  def base_collection
+    @base_collection ||= parent.todos
+  end
+
+  def resource
+    @resource ||= base_collection.find(params[:id])
+  end
 end
 ```
 
-- `Jaf::Base`: Include this in your ApplicationController, required for all the others.
-- `Jaf::Resources`: Normal controller flow for `index`, `show`, `create`, `update` and `destroy`
-- `Jaf::ToManyRelations`: Controller flow for `relationships/` endpoints. `create`, `update` and `destroy`
-- `Jaf::ToOneRelations`: Controller flor for `relationships/` endpoints. `update`
+Finally we can create our relationship controllers using [ToManyRelationships](lib/jaf/to_many_relationships.rb)
+and [ToOneRelationships](lib/jaf/to_one_relationships.rb).
+```ruby
+class Lists::Relationships::ListsController < ApplicationController
+  include Jaf::ToManyRelationships
+end
 
-## License
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+class Lists::Relationships::UsersController < ApplicationController
+  include Jaf::ToOneRelationships
+end
+```
