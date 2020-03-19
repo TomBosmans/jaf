@@ -8,8 +8,10 @@ module Jaf::Base
 
   included do
     class_attribute :ignore_namespaces, default: []
+    before_action :set_response_content_type
     before_action :validate_content_type
     before_action :validate_query_params, on: :index
+
 
     rescue_from ActionController::ParameterMissing do |exception|
       pointer = %i[data attributes] # data/attributes
@@ -134,5 +136,9 @@ module Jaf::Base
 
   def parent_id
     params[parent_key]
+  end
+
+  def set_response_content_type
+    headers['Content-Type'] = 'application/vnd.api+json'
   end
 end
