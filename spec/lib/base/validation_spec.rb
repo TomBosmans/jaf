@@ -4,6 +4,8 @@ require 'rails_helper'
 
 RSpec.describe 'Validation' do
   describe ListsController, type: :controller do
+    before { request.content_type = 'application/vnd.api+json' }
+
     it 'returns bad request' do
       get :index, params: { random: 'test' }
       expect(response).to have_http_status :bad_request
@@ -95,6 +97,12 @@ RSpec.describe 'Validation' do
 
       get :index, params: { include: 'random', fields: { user: 'random' }, hallo: 'world' }
       expect(JSON.parse(response.body)).to eq expected_body
+    end
+
+    it 'does not allow random Content-Type in the header' do
+      request.content_type = 'application/json'
+      get :index
+      expect(response).to have_http_status :unsupported_media_type
     end
   end
 end

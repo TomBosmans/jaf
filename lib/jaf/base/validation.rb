@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
 module Validation
+  def validate_content_type
+    if request.headers['content-type'] != 'application/vnd.api+json'
+      head :unsupported_media_type
+    end
+  end
+
   # Example: ['todos', 'user']
   def allowed_includes
     []

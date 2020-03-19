@@ -4,6 +4,8 @@ require 'rails_helper'
 
 RSpec.describe 'ToOneRelationships' do
   describe Lists::Relationships::UsersController, type: :controller do
+    before { request.content_type = 'application/vnd.api+json' }
+
     describe 'PATCH #update' do
       it 'has a 204 status' do
         list = create :list

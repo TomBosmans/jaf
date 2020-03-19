@@ -8,6 +8,7 @@ module Jaf::Base
 
   included do
     class_attribute :ignore_namespaces, default: []
+    before_action :validate_content_type
     before_action :validate_query_params, on: :index
 
     rescue_from ActionController::ParameterMissing do |exception|

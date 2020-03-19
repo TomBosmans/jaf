@@ -4,6 +4,8 @@ require 'rails_helper'
 
 RSpec.describe 'Resources' do
   describe UsersController, type: :controller do
+    before { request.content_type = 'application/vnd.api+json' }
+
     describe '#GET index' do
       it 'has a 200 status' do
         get :index
