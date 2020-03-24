@@ -3,6 +3,7 @@
 require 'jaf/railtie'
 require 'jaf/pagination'
 require 'jaf/sort_fields'
+require 'jaf/deserializer'
 require 'jaf/base'
 require 'jaf/resources'
 require 'jaf/nested_resources'
