@@ -26,6 +26,10 @@ module Jaf::Base
     end
   end
 
+  def deserialized_params
+    @deserialized_params ||= Jaf::Deserializer.new(params).deserialize
+  end
+
   def query_params
     request.query_parameters
   end
