@@ -6,7 +6,7 @@ class Jaf::Deserializer
   end
 
   def deserialize
-    ActionController::Parameters.new(attributes.merge(relationships))
+    ActionController::Parameters.new(attributes.merge(relationships || {}))
   end
 
   def data
@@ -14,7 +14,7 @@ class Jaf::Deserializer
   end
 
   def attributes
-    data[:attributes]
+    data[:attributes] || {}
   end
 
   def relationships
