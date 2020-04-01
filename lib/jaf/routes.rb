@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-def json_api_many(name, only: %w[index show create update destroy], set_relationship: true)
-  resources name, only: only
+def json_api_many(name, only: %w[index show create update destroy], except: [], set_relationship: true)
+  resources name, only: only - except
   return unless set_relationship
 
   namespace :relationships do
@@ -12,8 +12,8 @@ def json_api_many(name, only: %w[index show create update destroy], set_relation
   end
 end
 
-def json_api_one(name, only: %w[show update destroy], set_relationship: true)
-  resource name, only: only
+def json_api_one(name, only: %w[show update destroy], except: [], set_relationship: true)
+  resource name, only: only - except
   return unless set_relationship
 
   namespace :relationships do
@@ -21,8 +21,8 @@ def json_api_one(name, only: %w[show update destroy], set_relationship: true)
   end
 end
 
-def json_api_resources(name, only: %w[index show create update destroy])
-  resources name, only: only do
+def json_api_resources(name, only: %w[index show create update destroy], except: [])
+  resources name, only: only - except do
     scope module: name do
       yield if block_given?
     end
