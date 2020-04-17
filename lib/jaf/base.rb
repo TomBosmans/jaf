@@ -12,7 +12,6 @@ module Jaf::Base
     before_action :validate_content_type
     before_action :validate_query_params, on: :index
 
-
     rescue_from ActionController::ParameterMissing do |exception|
       pointer = %i[data attributes] # data/attributes
       index = pointer.index(exception.param) # where to cut off the pointer
@@ -75,6 +74,28 @@ module Jaf::Base
   # the attributes object from data object.
   def attributes
     data.require(:attributes)
+  end
+
+  # meant to hook in for authorization etc
+  def read_resource(resource)
+    resource
+  end
+
+  def create_resource(new_resource, attributes)
+    new_resource.attributes = attributes
+    new_resource.save
+    new_resource
+  end
+
+  def update_resource(resource, attributes)
+    resource.attributes = attributes
+    resource.save
+    resource
+  end
+
+  def destroy_resource(resource)
+    resource.destroy
+    resource
   end
 
   def paginate(collection)

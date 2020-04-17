@@ -2,8 +2,9 @@
 
 module Jaf::Resources
   def index
-    options[:meta] = { total: base_collection.count }
-    collection = base_collection.then(&method(:filter)).then(&method(:sort)).then(&method(:paginate))
+    filtered_collection = filter(base_collection)
+    options[:meta] = { total: filtered_collection.count }
+    collection = filtered_collection.then(&method(:sort)).then(&method(:paginate))
     render json: serialize(collection, options), status: :ok
   end
 
@@ -41,28 +42,6 @@ module Jaf::Resources
 
   def resource
     resource_model.find(params[:id])
-  end
-
-  # meant to hook in for authorization etc
-  def read_resource(resource)
-    resource
-  end
-
-  def create_resource(new_resource, attributes)
-    new_resource.attributes = attributes
-    new_resource.save
-    new_resource
-  end
-
-  def update_resource(resource, attributes)
-    resource.attributes = attributes
-    resource.save
-    resource
-  end
-
-  def destroy_resource(resource)
-    resource.destroy
-    resource
   end
 
   def base_collection
