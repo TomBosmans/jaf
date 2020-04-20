@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-def json_api_many(name, only: %w[index show create update destroy], except: [], set_relationship: true)
+def json_api_many(name, only: %w[index show create update destroy], except: [], set_relationship: false)
   resources name, only: only - except
   return unless set_relationship
 
@@ -12,7 +12,7 @@ def json_api_many(name, only: %w[index show create update destroy], except: [], 
   end
 end
 
-def json_api_one(name, only: %w[show update destroy], except: [], set_relationship: true)
+def json_api_one(name, only: %w[show update destroy], except: [], set_relationship: false)
   resource name, only: only - except
   return unless set_relationship
 
