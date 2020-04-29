@@ -2,9 +2,13 @@
 
 module Jaf::Resources
   def index
-    filtered_collection = filter(base_collection)
-    options[:meta] = { total: filtered_collection.count }
-    collection = filtered_collection.then(&method(:sort)).then(&method(:paginate))
+    options[:meta] = { total: filter(base_collection).count }
+    collection = base_collection
+                   .then(&method(:filter))
+                   .then(&method(:sort))
+                   .then(&method(:paginate))
+                   .then(&method(:preload))
+
     render json: serialize(collection, options), status: :ok
   end
 
@@ -48,8 +52,11 @@ module Jaf::Resources
     resource_model.all
   end
 
-  # meant for filtering/scoping the base_collection
   def filter(collection)
+    collection
+  end
+
+  def preload(collection)
     collection
   end
 
