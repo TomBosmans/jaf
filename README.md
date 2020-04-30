@@ -1,97 +1,94 @@
-## How to use
+# Json:Api Flow
 
-### Set up routes
-We are going to use the [routes.rb](lib/jaf/routes.rb) helpers for this.
+## Requirements
+Using this gem you still require a solution to serialize your data into something
+compatible with json:api. I recommend [fast_jsonapi](https://github.com/fast-jsonapi/fast_jsonapi), but other solutions are available.
 
-- `json_api_routes`: will create index/show/create/update/destroy endpoints
-- `json_api_many`: will create index/show/create/update/destroy endpoints + create/update/destroy relations endpoints
-- `json_api_one`: will create show/update/destroy endpoints + an update relations endpoint
+## Goal
+Make it easy to add controllers and endpoints in a consistent way that is conform with the [json:api](https://jsonapi.org/) spec.
+You can always take a look at the [dummy](spec/dummy/) app in specs to see a working version.
 
-They all accept `only` param to overwrite the endpoints it creates and an `set_relation`
-that can be set to false if you don't want to create the relationship endpoints.
-It is also possible to add extra endpoints inside the block.
+### Routes
+JAF adds a few helper methods to quickly add resources in your `routes.rb`
+You can find these [here](lib/jaf/routes.rb).
 
+Example:
 ```ruby
-# config/routes.rb 
-json_api_routes :lists do
-  get :ability, to: 'ability#show'
-  json_api_many :todos
-  json_api_one :user
+Rails.application.routes.draw do
+  json_api_resources :users do
+    json_api_many :lists, set_relationship: true
+  end
+
+  json_api_resources :lists do
+    json_api_many :todos, set_relationship: true
+    json_api_one :user, set_relationship: true
+
+    get :permissions, to: 'permissions#index'
+  end
+
+  json_api_resources :todos do
+    json_api_one :list, set_relationship: true
+  end
 end
 ```
 
-### Create the controllers
-First we want to create an `ApplicationController` that will include [Base](lib/jaf/base.rb).
-This will add some methods that help automate some of the process.
-- `query_params`: returns only the query params
-- `options`: options that can be given to the serializer (like meta info, current_user, ...)
-- `serialize_error`: To serialize an error message (no external library needed)
-- `serialize_errors`: To serialize multiple errors
-- `data`: returns the data params.
-- `attributes`: returns attributes params.
-- `resource_name`: returns the name of the resource based on the controller name.
-- `resource_model`: returns the resource model based on controller name.
-- `parent_name`: returns the parent resource in a nested endpoint based on controller name.
-- `parent_model`: returns the parent model in a nested endpoint based on controller name.
-- `parent_id`: returns the parent id given through the params.
+### Base
+This module is to be included in your `application_controller`.
+- It adds methods that based on the controller name can determine what your model class is etc. [more info](lib/jaf/base/meta.rb)
+- It adds methods that help with validating. [more info](lib/jaf/base/validation.rb)
+- It adds methods that can be overridden to change default behaviour. [more info](lib/jaf/base/defaults.rb)
+- It adds some handy methods that can be used. [more info](lib/jaf/base.rb)
 
-- `ignore_namespaces`: class attribute that can be set to ignore namespaces when determining `resource_model` etc.
-    
+Example using fast_jsonapi serializers:
 ```ruby
 class ApplicationController < ActionController::API
-  # self.ignore_namespaces = %w[json_api]
   include Jaf::Base
-end
+
+  def serializer
+    "#{resource_model}Serializer".constantize
+  end
+
+  def serialize(resource, options = {})
+    serializer.new(resource, options).serialized_json
+  end
+
+  def allowed_includes
+    serializer.relationships_to_serialize.keys.map(&:to_s)
+  end
+
+  def allowed_fields
+    fields = {}
+    fields[resource_name] = serializer.attributes_to_serialize.keys.map(&:to_s)
+    return fields unless options[:include]
+
+    fields = options[:include].each_with_object(fields) do |included, fields|
+      next fields unless allowed_includes.include?(included)
+
+      serializer = "#{included.singularize.camelize}Serializer".constantize
+      fields[included] = serializer.attributes_to_serialize.keys.map(&:to_s)
+    end
+
+    fields
+  end
 ```
 
-Now we can create our `ListsController` that includes [Resources](lib/jaf/resources.rb).
+### Resources
+To be included in your controllers that inherit from the `application_controller`.
+Contains all the basic controller actions with the correct data flow following json:api spec.
+[more info](lib/jaf/resources.rb)
+
+Example:
 ```ruby
-class ListsController < ApplicationController
+class UsersController < ApplicationController
   include Jaf::Resources
-  
-  private
 
   def resource_params
-    attributes.permit(:name, :description)
-  end
-end
-```
-The idea is that you overwrite the following methods to get the behaviour you want:
-
-- `resource`: To fetch your record based on the params[:id].
-- `resource_params`: Strong params given to update_resource and create_resource.
-- `base_collection`: The record collection used as a base in the index
-- `new_resource`: The initialized instance used to create a record.
-- `create_resource`: move your create logic in here and make sure it returns the resource again, if it has no errors it is considered a success.
-- `update_resource`: move your update logic in here and make sure it returns the updated record. If it has no errors it is considered a success.
-- `destroy_resource`: move you destroy logic in here.
-- `serialize`: Use a gem like fast_jsonapi or AMS to serialize your result.
-
-Next you want to create your `Lists::TodosController` and `Lists::UsersController`
-```ruby
-# Assuming you already have a TodosController we can use that to inherit from
-# This way we don't need to set resource_params a second time.
-class Lists::TodosController < TodosController
-  private
-
-  def base_collection
-    @base_collection ||= parent.todos
-  end
-
-  def resource
-    @resource ||= base_collection.find(params[:id])
+    deserialized_params.permit(:name, :email)
   end
 end
 ```
 
-Finally we can create our relationship controllers using [ToManyRelationships](lib/jaf/to_many_relationships.rb)
-and [ToOneRelationships](lib/jaf/to_one_relationships.rb).
-```ruby
-class Lists::Relationships::ListsController < ApplicationController
-  include Jaf::ToManyRelationships
-end
-
-class Lists::Relationships::UsersController < ApplicationController
-  include Jaf::ToOneRelationships
-end
-```
+## TODO
+- A good solution for relationships endpoints
+- Validate filter params based on `allowed_filters`
+- Allow routes helper methods to accept string and symbols for `only:` and `except:`

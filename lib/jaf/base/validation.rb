@@ -1,30 +1,16 @@
 # frozen_string_literal: true
 
+# All methods in this module are added to the Base module
+# These are not supposed to be overridden but is always possible.
 module Validation
+  # Validates if the request contains the correct content type.
   def validate_content_type
     if request.headers['content-type'] != 'application/vnd.api+json'
       head :unsupported_media_type
     end
   end
 
-  # Example: ['todos', 'user']
-  def allowed_includes
-    []
-  end
-
-  # Example: { 'todos' => ['created_at']. 'user' => ['name', 'email'] }
-  def allowed_fields
-    {}
-  end
-
-  def allowed_filters
-    []
-  end
-
-  def allowed_query_params
-    %w[include fields filter sort page]
-  end
-
+  # Validate if the given query params are allowed.
   def validate_query_params
     errors = [].then(&method(:validate_query_param_keys_clause))
                .then(&method(:validate_include_clause))
@@ -36,6 +22,7 @@ module Validation
     end
   end
 
+  # Validate query params based on the #allowed_query_params
   def validate_query_param_keys_clause(errors)
     return errors unless query_params.keys
 
@@ -50,6 +37,7 @@ module Validation
     end
   end
 
+  # Validate query params based on #allowed_includes
   def validate_include_clause(errors)
     return errors unless options[:include]
 
@@ -64,6 +52,7 @@ module Validation
     end
   end
 
+  # Validate query params based on #allowed_fields.
   def validate_fields_clause(errors)
     return errors unless options[:fields]
 
@@ -80,6 +69,7 @@ module Validation
     end
   end
 
+  # TODO: Validate query params based on #allowed_filters.
   def validate_filters_clause(errors)
     errors
   end
